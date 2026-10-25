@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+/* ========================================================================
+   DESIGN TOKENS
+   ======================================================================== */
+@theme {
+  /* Surfaces */
+  --color-ink-950: #03050a;
+  --color-ink-900: #060a12;
+  --color-ink-850: #08101b;
+  --color-ink-800: #0b1422;
+  --color-ink-700: #111d2f;
+  --color-ink-600: #1a2a41;
+  --color-line: rgb(148 178 214 / 0.12);
+  --color-line-strong: rgb(148 178 214 / 0.22);
+
+  /* Text */
+  --color-silver-50: #f3f6fa;
+  --color-silver-100: #dfe6ef;
+  --color-silver-300: #aab7c8;
+  --color-silver-400: #8494aa;
+  --color-silver-500: #64748b;
+
+  /* Accents */
+  --color-signal: #4fd8eb;      /* electric cyan */
+  --color-signal-soft: #9be8f3; /* ice blue */
+  --color-teal: #2bb8a6;
+  --color-warn: #f2b45a;
+  --color-fault: #ef6b6b;
+
+  /* Typography */
+  --font-display: 'Archivo Variable', 'Archivo', 'Inter Variable', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Radii & shadows */
+  --radius-panel: 1.25rem;
+  --shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 30px 60px -30px rgb(0 0 0 / 0.7);
+  --shadow-glow: 0 0 0 1px rgb(79 216 235 / 0.35), 0 10px 40px -10px rgb(79 216 235 / 0.45);
+
+  /* Motion */
+  --ease-precise: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-signal: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --animate-dash: dash 2.4s linear infinite;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -48; }
+}
+
+@layer base {
+  html {
+    background: var(--color-ink-950);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-ink-950);
+    color: var(--color-silver-100);
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: rgb(79 216 235 / 0.35); color: #fff; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  section[id] { scroll-margin-top: 84px; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--color-ink-950); }
+  ::-webkit-scrollbar-thumb { background: var(--color-ink-600); border-radius: 4px; }
+
+  input[type='range'] { accent-color: var(--color-signal); }
+}
+
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-signal);
+  }
+  .panel {
+    position: relative;
+    background: linear-gradient(180deg, rgb(17 29 47 / 0.55), rgb(8 16 27 / 0.75));
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-panel);
+  }
+  .hairline-grid {
+    background-image:
+      linear-gradient(to right, rgb(148 178 214 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(148 178 214 / 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .tick-corners {
+    --c: rgb(79 216 235 / 0.55);
+    background:
+      linear-gradient(var(--c), var(--c)) top left / 12px 1px,
+      linear-gradient(var(--c), var(--c)) top left / 1px 12px,
+      linear-gradient(var(--c), var(--c)) top right / 12px 1px,
+      linear-gradient(var(--c), var(--c)) top right / 1px 12px,
+      linear-gradient(var(--c), var(--c)) bottom left / 12px 1px,
+      linear-gradient(var(--c), var(--c)) bottom left / 1px 12px,
+      linear-gradient(var(--c), var(--c)) bottom right / 12px 1px,
+      linear-gradient(var(--c), var(--c)) bottom right / 1px 12px;
+    background-repeat: no-repeat;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-line);
+    background: rgb(255 255 255 / 0.02);
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--color-silver-300);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 46px;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color .3s var(--ease-precise), color .3s, border-color .3s, box-shadow .3s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--color-signal);
+    color: #021015;
+    box-shadow: 0 10px 40px -12px rgb(79 216 235 / 0.65);
+  }
+  .btn-primary:hover { background: var(--color-signal-soft); }
+  .btn-ghost {
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-silver-50);
+    background: rgb(255 255 255 / 0.02);
+  }
+  .btn-ghost:hover { border-color: rgb(79 216 235 / 0.6); background: rgb(79 216 235 / 0.06); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .field {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-line-strong);
+    background: rgb(3 5 10 / 0.6);
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--color-silver-50);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .field::placeholder { color: var(--color-silver-500); }
+  .field:focus { outline: none; border-color: var(--color-signal); box-shadow: 0 0 0 3px rgb(79 216 235 / 0.18); }
+  .field[aria-invalid='true'] { border-color: var(--color-fault); }
+}
+
+/* Custom cursor: only on fine pointers, when enabled */
+html.has-cursor a, html.has-cursor button, html.has-cursor [role='button'] { cursor: pointer; }
+
+/* ========================================================================
+   REDUCED MOTION
+   ======================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================================================
+   PRINT — prints only the résumé document
+   ======================================================================== */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; color: #111 !important; }
+  body * { visibility: hidden; }
+  #resume-document, #resume-document * { visibility: visible; }
+  #resume-document {
+    position: absolute; inset: 0 auto auto 0; width: 100%;
+    background: #fff !important; color: #111 !important;
+    box-shadow: none !important; border: none !important; padding: 0 !important;
+  }
+  #resume-document * { color: #111 !important; background: transparent !important; border-color: #ccc !important; box-shadow: none !important; }
+  #resume-document a { text-decoration: none; }
+  .no-print { display: none !important; }
+}
+
+@media print {
+  /* Make sure scroll-reveal wrappers never hide the résumé when printing */
+  #resume-document, [style*='opacity'] { opacity: 1 !important; transform: none !important; }
+}
+
+/* Pause CSS loops in regions that are off-screen */
+[data-live='false'] *, [data-live='false'] { animation-play-state: paused !important; }
