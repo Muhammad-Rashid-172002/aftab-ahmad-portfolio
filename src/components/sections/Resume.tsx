@@ -1,49 +1,73 @@
-import { Download, FileText, Mail, MapPin, Printer, Linkedin } from 'lucide-react';
+import { Download, ExternalLink, FileText, Mail, MapPin, Printer, Linkedin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { experience, expertise, profile } from '../../data/profile';
 import { Reveal, SectionHeading } from '../ui/primitives';
 
-/** Checks that a real PDF is served at the configured path (SPA fallbacks return HTML). */
-function usePdfAvailable(url: string) {
-  const [ok, setOk] = useState(false);
+/**
+ * Finds the first candidate path that is served as a real PDF. SPA hosts answer
+ * unknown paths with index.html (HTTP 200), so we check the content-type AND the
+ * "%PDF" magic bytes rather than trusting the status code.
+ */
+export function useResumePdf(candidates: string[]) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
   useEffect(() => {
-    if (!url) return;
     let alive = true;
-    fetch(url, { method: 'HEAD' })
-      .then((r) => alive && setOk(r.ok && (r.headers.get('content-type') ?? '').includes('pdf')))
-      .catch(() => alive && setOk(false));
+    (async () => {
+      for (const c of candidates) {
+        try {
+          const r = await fetch(c, { headers: { Range: 'bytes=0-4' }, cache: 'no-cache' });
+          const type = r.headers.get('content-type') ?? '';
+          if (!r.ok || type.includes('html')) continue;
+          const head = new TextDecoder().decode((await r.arrayBuffer()).slice(0, 5));
+          if (head.startsWith('%PDF')) {
+            if (alive) setUrl(c);
+            break;
+          }
+        } catch {
+          /* try next candidate */
+        }
+      }
+      if (alive) setChecked(true);
+    })();
     return () => {
       alive = false;
     };
-  }, [url]);
-  return ok;
+  }, [candidates]);
+  return { url, checked };
 }
 
 export function Resume() {
-  const pdf = usePdfAvailable(profile.resumePdfUrl);
+  const { url: pdf, checked } = useResumePdf(profile.resumePdfCandidates);
   return (
     <section id="resume" aria-labelledby="resume-title" className="relative py-20 sm:py-28">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading id="resume-title" index="08" eyebrow="Professional Resume" title="The one-page version." lead="A print-ready summary of experience, education and technical scope." />
           <Reveal className="no-print flex flex-wrap gap-3">
-            <button type="button" onClick={() => window.print()} className="btn btn-ghost">
-              <Printer className="h-4 w-4" aria-hidden /> Print / Save as PDF
-            </button>
             {pdf ? (
-              <a href={profile.resumePdfUrl} download className="btn btn-primary">
-                <Download className="h-4 w-4" aria-hidden /> Download PDF
-              </a>
+              <>
+                <a href={pdf} download={profile.resumePdfFilename} className="btn btn-primary" data-cursor="Download">
+                  <Download className="h-4 w-4" aria-hidden /> Download CV
+                </a>
+                <a href={pdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">
+                  <ExternalLink className="h-4 w-4" aria-hidden /> View CV
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+                <button type="button" onClick={() => window.print()} className="btn !px-3 text-silver-300 hover:text-silver-50">
+                  <Printer className="h-4 w-4" aria-hidden /> Print summary
+                </button>
+              </>
             ) : (
-              <button type="button" disabled className="btn btn-primary" aria-describedby="pdf-note">
-                <Download className="h-4 w-4" aria-hidden /> Download PDF
+              <button type="button" onClick={() => window.print()} className="btn btn-primary">
+                <Printer className="h-4 w-4" aria-hidden /> Print / Save as PDF
               </button>
             )}
           </Reveal>
         </div>
-        {!pdf && (
-          <p id="pdf-note" className="no-print mt-3 text-right text-xs text-silver-500">
-            PDF download becomes available once the résumé file is published.
+        {checked && !pdf && (
+          <p className="no-print mt-3 text-xs text-silver-500 lg:text-right" role="note">
+            The CV PDF hasn't been published yet — use Print / Save as PDF to keep a copy of this summary.
           </p>
         )}
 
@@ -111,7 +135,7 @@ export function Resume() {
                   </div>
                 </section>
               </div>
-              <aside className="space-y-6">
+              <div className="space-y-6">
                 <section>
                   <h4 className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[#64748b]">Education</h4>
                   <p className="mt-2 text-sm font-semibold text-[#03050a]">{profile.degree}</p>
@@ -127,7 +151,7 @@ export function Resume() {
                     <p className="mt-2 text-[13px] leading-relaxed text-[#334155]">{c.items.map((i) => i.name).join(' · ')}</p>
                   </section>
                 ))}
-              </aside>
+              </div>
             </div>
             <footer className="mt-8 flex items-center gap-2 border-t border-[#d5dbe3] pt-4 text-[11px] text-[#64748b]">
               <FileText className="h-3.5 w-3.5" aria-hidden /> Generated from the portfolio content. Employer names indicate work context only.

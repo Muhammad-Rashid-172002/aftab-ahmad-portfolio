@@ -319,6 +319,152 @@ function Pulses({ from, to, reduced }: { from: THREE.Vector3; to: THREE.Vector3;
   );
 }
 
+/* ----------------------------------------------------------------------
+   Network layer — a sparse constellation of relay nodes above the horizon,
+   with a couple of backhaul links rising from the far site. Deterministic
+   layout (seeded), additive and faint so it never competes with the text.
+   ---------------------------------------------------------------------- */
+function seeded(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+let dotTexture: THREE.Texture | null = null;
+/** Soft round sprite so points render as glowing dots instead of squares. */
+function getDotTexture() {
+  if (dotTexture) return dotTexture;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.35, 'rgba(255,255,255,.6)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  dotTexture = new THREE.CanvasTexture(c);
+  return dotTexture;
+}
+
+function NetworkField({ from, count, reduced, pointer }: { from: THREE.Vector3; count: number; reduced: boolean; pointer: React.RefObject<{ x: number; y: number }> }) {
+  const group = useRef<THREE.Group>(null);
+  const pointsMat = useRef<THREE.PointsMaterial>(null);
+  const linkRef = useRef<THREE.LineSegments>(null);
+  const { nodeGeo, lineGeo, linkGeo } = useMemo(() => {
+    const rnd = seeded(7);
+    const nodes: THREE.Vector3[] = [];
+    for (let i = 0; i < count; i++) {
+      const a = -0.35 + rnd() * 1.45; // arc across the sky behind the far site
+      const r = 26 + rnd() * 14;
+      nodes.push(new THREE.Vector3(Math.sin(a) * r - 2, 9 + rnd() * 8, -Math.cos(a) * r - 6));
+    }
+    const seg: number[] = [];
+    for (let i = 0; i < nodes.length; i++)
+      for (let j = i + 1; j < nodes.length; j++) if (nodes[i].distanceTo(nodes[j]) < 9) seg.push(...nodes[i].toArray(), ...nodes[j].toArray());
+    const nodeGeo = new THREE.BufferGeometry().setFromPoints(nodes);
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(seg, 3));
+    // Backhaul links: far dish → the two closest nodes
+    const nearest = [...nodes].sort((p, q) => p.distanceTo(from) - q.distanceTo(from)).slice(0, 2);
+    const links: number[] = [];
+    nearest.forEach((n) => links.push(...from.toArray(), ...n.toArray()));
+    const linkGeo = new THREE.BufferGeometry();
+    linkGeo.setAttribute('position', new THREE.Float32BufferAttribute(links, 3));
+    return { nodes, nodeGeo, lineGeo, linkGeo };
+  }, [count, from]);
+  useEffect(() => () => {
+    nodeGeo.dispose();
+    lineGeo.dispose();
+    linkGeo.dispose();
+  }, [nodeGeo, lineGeo, linkGeo]);
+
+  useEffect(() => {
+    linkRef.current?.computeLineDistances(); // required for dashed lines
+  }, [linkGeo]);
+
+  useFrame(({ clock }, dt) => {
+    if (reduced || !group.current) return;
+    const p = pointer.current ?? { x: 0, y: 0 };
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, Math.sin(clock.elapsedTime * 0.03) * 0.04 + p.x * 0.02, 1.5, dt);
+    if (pointsMat.current) pointsMat.current.opacity = 0.65 + Math.sin(clock.elapsedTime * 1.3) * 0.2;
+  });
+
+  return (
+    <group ref={group}>
+      <points geometry={nodeGeo}>
+        <pointsMaterial ref={pointsMat} map={getDotTexture()} alphaTest={0.01} color="#9be8f3" size={0.9} sizeAttenuation transparent opacity={0.75} depthWrite={false} toneMapped={false} fog={false} />
+      </points>
+      <lineSegments geometry={lineGeo}>
+        <lineBasicMaterial color="#4fd8eb" transparent opacity={0.14} depthWrite={false} fog={false} />
+      </lineSegments>
+      <lineSegments ref={linkRef} geometry={linkGeo}>
+        <lineDashedMaterial color="#4fd8eb" transparent opacity={0.35} dashSize={0.6} gapSize={0.5} depthWrite={false} fog={false} />
+      </lineSegments>
+    </group>
+  );
+}
+
+/** Particles drifting along the beam from emitter to receiver. */
+function BeamParticles({ from, to, count, reduced }: { from: THREE.Vector3; to: THREE.Vector3; count: number; reduced: boolean }) {
+  const ref = useRef<THREE.Points>(null);
+  const { geo, seeds } = useMemo(() => {
+    const rnd = seeded(11);
+    const seeds = Array.from({ length: count }, () => ({ t: rnd(), r: rnd() * 0.25, a: rnd() * Math.PI * 2, v: 0.04 + rnd() * 0.05 }));
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(count * 3), 3));
+    return { geo, seeds };
+  }, [count]);
+  useEffect(() => () => geo.dispose(), [geo]);
+  const dir = useMemo(() => new THREE.Vector3().subVectors(to, from), [from, to]);
+  const side = useMemo(() => new THREE.Vector3().crossVectors(dir, UP).normalize(), [dir]);
+  const up2 = useMemo(() => new THREE.Vector3().crossVectors(side, dir).normalize(), [side, dir]);
+  const tmp = useMemo(() => new THREE.Vector3(), []);
+
+  useFrame((_, dt) => {
+    const pos = geo.getAttribute('position') as THREE.BufferAttribute;
+    seeds.forEach((s, i) => {
+      if (!reduced) s.t = (s.t + s.v * dt) % 1;
+      const spread = s.r * (0.4 + s.t * 2.2); // beam widens with distance
+      tmp.copy(from).addScaledVector(dir, s.t).addScaledVector(side, Math.cos(s.a) * spread).addScaledVector(up2, Math.sin(s.a) * spread);
+      pos.setXYZ(i, tmp.x, tmp.y, tmp.z);
+    });
+    pos.needsUpdate = true;
+  });
+  return (
+    <points ref={ref} geometry={geo}>
+      <pointsMaterial map={getDotTexture()} color="#c9f6fc" size={0.12} sizeAttenuation transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
+    </points>
+  );
+}
+
+/** Radar-style ring expanding across the ground from the near site. */
+function RadarRing({ at, reduced }: { at: [number, number, number]; reduced: boolean }) {
+  const a = useRef<THREE.Mesh>(null);
+  const b = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    const t = reduced ? 0.3 : clock.elapsedTime;
+    [a, b].forEach((m, i) => {
+      if (!m.current) return;
+      const p = (t * 0.18 + i * 0.5) % 1;
+      m.current.scale.setScalar(1 + p * 14);
+      (m.current.material as THREE.MeshBasicMaterial).opacity = (1 - p) * 0.35;
+    });
+  });
+  return (
+    <group position={[at[0], 0.02, at[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+      {[a, b].map((r, i) => (
+        <mesh key={i} ref={r}>
+          <ringGeometry args={[0.96, 1, 64]} />
+          <meshBasicMaterial color="#4fd8eb" transparent opacity={0.3} depthWrite={false} toneMapped={false} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function Ground({ reduced }: { reduced: boolean }) {
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
   useFrame((_, dt) => {
@@ -466,6 +612,9 @@ export default function HeroScene({ reduced, lowPower, mobile, onReady }: HeroSc
         <MicrowaveAntenna position={dishB} target={dishA} radius={0.55} detail="low" />
         <Beam from={dishA} to={dishB} reduced={reduced} />
         <Pulses from={dishA} to={dishB} reduced={reduced} />
+        <BeamParticles from={dishA} to={dishB} count={detail === 'high' ? 90 : 40} reduced={reduced} />
+        <NetworkField from={dishB} count={detail === 'high' ? 34 : 18} reduced={reduced} pointer={pointer} />
+        <RadarRing at={towerA} reduced={reduced} />
         <Rig pointer={pointer} scroll={scroll} mobile={mobile} reduced={reduced} />
       </Canvas>
     </div>

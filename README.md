@@ -23,7 +23,8 @@ Components only read from that file.
 | --- | --- |
 | LinkedIn URL | `profile.linkedinUrl` — set to `''` to hide all LinkedIn links |
 | Portrait | `public/assets/aistudio/` (`aftab-portrait.webp`, `-sm.webp`, original PNG fallback) |
-| Résumé PDF | Put the real file at `public/resume/aftab-ahmed-resume.pdf`. The *Download PDF* button enables itself automatically once that file is served. |
+| CV PDF | **Not in the repo yet.** Put the client's real CV at `public/Aftab-Ahmed-CV.pdf` (or `public/resume/aftab-ahmed-resume.pdf`). *Download CV* (saves as `Aftab-Ahmed-CV.pdf`) and *View CV* appear automatically once a valid PDF is served — the site checks the `%PDF` header, so an SPA fallback page never counts. Until then only *Print / Save as PDF* is shown. |
+| SEO | `index.html` (canonical / Open Graph for `https://aftab-ahmad-portfolio.vercel.app/`), `public/og-image.jpg`, `public/robots.txt`, `public/sitemap.xml` |
 
 ## Structure
 
@@ -42,8 +43,8 @@ src/
 
 ## Behaviour notes
 
-- **3D hero** is code-split and only loads when WebGL is available; otherwise an SVG scene is shown.
-  It stops rendering when scrolled off-screen. Append `?no3d` to the URL to force the SVG fallback.
+- **3D hero** (tower, dish, beam particles, relay-node constellation, radar ring) is code-split and only loads when WebGL is available; otherwise an SVG scene is shown.
+  It stops rendering when scrolled off-screen and is skipped when the browser's Data Saver is on. Append `?no3d` to the URL to force the SVG fallback.
 - **Reduced motion** (`prefers-reduced-motion`) disables the intro, smooth scrolling, parallax and looping animations.
 - **Intro** plays once per browser session and can be skipped (button or `Esc`).
 - **Contact form** has no backend: it validates input, then opens a prefilled email draft (`mailto:`) or copies the message.

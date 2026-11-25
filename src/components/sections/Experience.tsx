@@ -1,12 +1,16 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useScroll, useSpring } from 'motion/react';
 import { Briefcase, ChevronDown, GraduationCap } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { experience } from '../../data/profile';
 import { ease } from '../../lib/motion';
 import { Reveal, SectionHeading } from '../ui/primitives';
 
 export function Experience() {
   const [open, setOpen] = useState<string>(experience[0].id);
+  const listRef = useRef<HTMLOListElement>(null);
+  // Timeline "signal" fills as the list scrolls through the viewport.
+  const { scrollYProgress } = useScroll({ target: listRef, offset: ['start 75%', 'end 60%'] });
+  const fill = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: 0.001 });
   return (
     <section id="experience" aria-labelledby="exp-title" className="relative py-20 sm:py-28">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
@@ -17,8 +21,13 @@ export function Experience() {
             </div>
           </div>
 
-          <ol className="relative lg:col-span-8">
-            <span aria-hidden className="absolute bottom-4 left-[19px] top-4 w-px bg-gradient-to-b from-signal/70 via-line-strong to-transparent" />
+          <ol ref={listRef} className="relative lg:col-span-8">
+            <span aria-hidden className="absolute bottom-4 left-[19px] top-4 w-px bg-line-strong" />
+            <motion.span
+              aria-hidden
+              className="absolute bottom-4 left-[19px] top-4 w-px origin-top bg-gradient-to-b from-signal via-signal to-teal shadow-[0_0_12px_rgba(79,216,235,.8)]"
+              style={{ scaleY: fill }}
+            />
             {experience.map((e, i) => {
               const isOpen = open === e.id;
               const Icon = e.type === 'Internship' ? GraduationCap : Briefcase;

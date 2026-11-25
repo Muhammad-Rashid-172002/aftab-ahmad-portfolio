@@ -35,7 +35,9 @@ export function Hero() {
   useEffect(() => {
     // `?no3d` forces the lightweight SVG scene (useful for debugging / screenshots).
     const forceFallback = new URLSearchParams(window.location.search).has('no3d');
-    setWebgl(!forceFallback && detectWebGL());
+    // Respect Data Saver: skip the ~250 kB 3D chunk and keep the SVG scene.
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+    setWebgl(!forceFallback && !saveData && detectWebGL());
     setLowPower(isLowPowerDevice());
   }, []);
 

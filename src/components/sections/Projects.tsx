@@ -7,6 +7,7 @@ import { ease } from '../../lib/motion';
 import { Reveal, SectionHeading } from '../ui/primitives';
 import { CoilViz, LinkViz, SiteViz } from '../viz/ProjectViz';
 import { Live } from '../ui/Live';
+import { Tilt } from '../ui/Tilt';
 
 const vizMap = { coil: CoilViz, link: LinkViz, site: SiteViz };
 
@@ -40,7 +41,7 @@ function ProjectChapter({ project, flip }: { project: Project; flip: boolean }) 
     <article aria-labelledby={`p-${project.id}`} className="grid items-start gap-6 lg:grid-cols-12 [&>*]:min-w-0 lg:gap-10">
       {/* Stage */}
       <Reveal className={`min-w-0 lg:col-span-7 ${flip ? 'lg:order-2' : ''}`}>
-        <div className="panel overflow-hidden">
+        <Tilt className="panel overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-5 py-3">
             <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-silver-400">
               <ScanSearch className="h-3.5 w-3.5 text-signal" aria-hidden /> Inspection view · {project.number}
@@ -66,7 +67,7 @@ function ProjectChapter({ project, flip }: { project: Project; flip: boolean }) 
               </button>
             ))}
           </div>
-        </div>
+        </Tilt>
         {/* On small screens the details sit directly under the diagram */}
         <div className="mt-4 lg:hidden">
           <DetailsCard label={current.label} detail={current.detail} id={current.id} />

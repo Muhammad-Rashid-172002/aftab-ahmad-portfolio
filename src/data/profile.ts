@@ -36,8 +36,11 @@ export const profile: Profile = {
     width: 826,
     height: 1062,
   },
-  // Drop the real PDF at public/resume/aftab-ahmed-resume.pdf to enable download.
-  resumePdfUrl: '/resume/aftab-ahmed-resume.pdf',
+  // No original CV PDF exists in the repository yet. Put the client's real file at
+  // public/Aftab-Ahmed-CV.pdf (or public/resume/aftab-ahmed-resume.pdf) and the
+  // Download CV / View CV buttons enable themselves automatically.
+  resumePdfCandidates: ['/Aftab-Ahmed-CV.pdf', '/resume/aftab-ahmed-resume.pdf'],
+  resumePdfFilename: 'Aftab-Ahmed-CV.pdf',
 };
 
 export const hero = {

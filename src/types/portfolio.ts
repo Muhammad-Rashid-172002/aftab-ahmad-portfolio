@@ -29,10 +29,13 @@ export interface Profile {
     height: number;
   };
   /**
-   * Path to a real résumé PDF inside /public. The download button stays disabled
-   * until a file is actually served from this path (checked at runtime).
+   * Candidate paths (inside /public) for the client's real CV PDF. The first one
+   * that is actually served as a valid PDF is used; if none is, the download and
+   * view actions are hidden (checked at runtime, so dropping the file in enables them).
    */
-  resumePdfUrl: string;
+  resumePdfCandidates: string[];
+  /** Filename the browser saves the CV as. */
+  resumePdfFilename: string;
 }
 
 export interface ProjectHotspot {

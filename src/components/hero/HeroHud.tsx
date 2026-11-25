@@ -25,7 +25,7 @@ export function HeroHud() {
   ];
 
   return (
-    <motion.aside
+    <motion.div role="note"
       aria-label="Simulated link status display"
       className="pointer-events-none absolute bottom-10 right-6 hidden w-[250px] lg:block xl:right-10"
       initial={{ opacity: 0, x: 16 }}
@@ -62,6 +62,6 @@ export function HeroHud() {
           Visual illustration only. Not live network telemetry.
         </p>
       </div>
-    </motion.aside>
+    </motion.div>
   );
 }

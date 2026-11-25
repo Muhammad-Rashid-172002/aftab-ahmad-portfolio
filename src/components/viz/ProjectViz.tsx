@@ -36,7 +36,7 @@ export function CoilViz({ active, onSelect, labels }: VizProps) {
   const rxY = 300;
   const fieldLines = [60, 95, 130, 165];
   return (
-    <svg viewBox="0 0 640 440" className="h-full w-full" role="img" aria-label="Diagram of transmitter and implanted receiver coils with magnetic flux lines">
+    <svg viewBox="0 0 640 440" className="h-full w-full" role="group" aria-label="Diagram of transmitter and implanted receiver coils with magnetic flux lines">
       <defs>
         <linearGradient id="tissue" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#2bb8a6" stopOpacity="0.10" />
@@ -162,7 +162,7 @@ export function LinkViz({ active, onSelect, labels }: VizProps) {
   const A = { x: 108, y: 112 };
   const B = { x: 532, y: 126 };
   return (
-    <svg viewBox="0 0 640 440" className="h-full w-full" role="img" aria-label="Microwave link between two towers with antennas, radio units, indoor units and Fresnel zone">
+    <svg viewBox="0 0 640 440" className="h-full w-full" role="group" aria-label="Microwave link between two towers with antennas, radio units, indoor units and Fresnel zone">
       {/* Terrain */}
       <path d="M0 380 C 110 360, 180 372, 250 350 S 380 330, 430 352 S 560 370, 640 360 V440 H0Z" fill="#0a1524" />
       <path d="M0 380 C 110 360, 180 372, 250 350 S 380 330, 430 352 S 560 370, 640 360" fill="none" stroke={C.line} />
@@ -248,7 +248,7 @@ export function LinkViz({ active, onSelect, labels }: VizProps) {
 export function SiteViz({ active, onSelect, labels }: VizProps) {
   const hl = (id: string) => (active === id ? C.soft : C.silver);
   return (
-    <svg viewBox="0 0 640 440" className="h-full w-full" role="img" aria-label="Exploded view of a telecom site: sector antennas, RRUs, fiber and power runs, BBU cabinet and grounding">
+    <svg viewBox="0 0 640 440" className="h-full w-full" role="group" aria-label="Exploded view of a telecom site: sector antennas, RRUs, fiber and power runs, BBU cabinet and grounding">
       {/* Isometric ground plate */}
       <path d="M90 360 L320 290 L560 360 L320 430 Z" fill="#0a1524" stroke={C.line} />
       {/* Tower mast */}
