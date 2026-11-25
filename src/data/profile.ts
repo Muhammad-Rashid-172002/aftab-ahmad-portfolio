@@ -36,10 +36,8 @@ export const profile: Profile = {
     width: 826,
     height: 1062,
   },
-  // No original CV PDF exists in the repository yet. Put the client's real file at
-  // public/Aftab-Ahmed-CV.pdf (or public/resume/aftab-ahmed-resume.pdf) and the
-  // Download CV / View CV buttons enable themselves automatically.
-  resumePdfCandidates: ['/Aftab-Ahmed-CV.pdf', '/resume/aftab-ahmed-resume.pdf'],
+  // Generated from this file by `npm run cv` (scripts/generate-cv.ts).
+  resumePdfUrl: '/Aftab-Ahmed-CV.pdf',
   resumePdfFilename: 'Aftab-Ahmed-CV.pdf',
 };
 

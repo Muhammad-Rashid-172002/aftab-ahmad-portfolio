@@ -23,7 +23,7 @@ Components only read from that file.
 | --- | --- |
 | LinkedIn URL | `profile.linkedinUrl` — set to `''` to hide all LinkedIn links |
 | Portrait | `public/assets/aistudio/` (`aftab-portrait.webp`, `-sm.webp`, original PNG fallback) |
-| CV PDF | **Not in the repo yet.** Put the client's real CV at `public/Aftab-Ahmed-CV.pdf` (or `public/resume/aftab-ahmed-resume.pdf`). *Download CV* (saves as `Aftab-Ahmed-CV.pdf`) and *View CV* appear automatically once a valid PDF is served — the site checks the `%PDF` header, so an SPA fallback page never counts. Until then only *Print / Save as PDF* is shown. |
+| CV PDF | `public/Aftab-Ahmed-CV.pdf`, generated from `src/data/profile.ts` by `npm run cv` (`scripts/generate-cv.ts`, needs `npx playwright install chromium` once). Re-run it whenever profile content changes. The hero and Resume section link to it with *Download CV* (saves as `Aftab-Ahmed-CV.pdf`) and *View CV* (new tab). |
 | SEO | `index.html` (canonical / Open Graph for `https://aftab-ahmad-portfolio.vercel.app/`), `public/og-image.jpg`, `public/robots.txt`, `public/sitemap.xml` |
 
 ## Structure
@@ -48,7 +48,7 @@ src/
 - **Reduced motion** (`prefers-reduced-motion`) disables the intro, smooth scrolling, parallax and looping animations.
 - **Intro** plays once per browser session and can be skipped (button or `Esc`).
 - **Contact form** has no backend: it validates input, then opens a prefilled email draft (`mailto:`) or copies the message.
-- **Print**: the *Print / Save as PDF* button prints only the résumé document.
+- **Print**: printing the page (Ctrl/Cmd+P) prints only the résumé summary.
 - **Research lab** uses a simplified, documented analytical model calibrated to the supplied parameters
   (see `src/lib/wptModel.ts`). It is an educational visualization, not a validated simulation.
 - HUD values in the hero and RSL values in the architecture diagram are **illustrative**, not live telemetry.

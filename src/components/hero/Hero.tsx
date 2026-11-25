@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowDown, ArrowUpRight, FileText, MapPin } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, Download, MapPin } from 'lucide-react';
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { hero, profile } from '../../data/profile';
 import { detectWebGL, isLowPowerDevice, useMediaQuery, usePrefersReducedMotion } from '../../lib/hooks';
@@ -134,8 +134,15 @@ export function Hero() {
                 Let's Connect <ArrowUpRight className="h-4 w-4" aria-hidden />
               </a>
             </Magnetic>
-            <a href="#resume" onClick={onAnchor} className="btn !px-3 text-silver-300 hover:text-silver-50">
-              <FileText className="h-4 w-4" aria-hidden /> View Resume
+            <a
+              href={profile.resumePdfUrl}
+              download={profile.resumePdfFilename}
+              type="application/pdf"
+              className="btn btn-ghost"
+              data-cursor="Download"
+            >
+              <Download className="h-4 w-4" aria-hidden /> Download CV
+              <span className="sr-only">(PDF)</span>
             </a>
           </motion.div>
         </div>

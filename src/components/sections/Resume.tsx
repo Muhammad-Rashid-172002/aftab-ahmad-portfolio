@@ -1,75 +1,39 @@
-import { Download, ExternalLink, FileText, Mail, MapPin, Printer, Linkedin } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Download, ExternalLink, FileText, Mail, MapPin, Linkedin } from 'lucide-react';
 import { experience, expertise, profile } from '../../data/profile';
 import { Reveal, SectionHeading } from '../ui/primitives';
 
-/**
- * Finds the first candidate path that is served as a real PDF. SPA hosts answer
- * unknown paths with index.html (HTTP 200), so we check the content-type AND the
- * "%PDF" magic bytes rather than trusting the status code.
- */
-export function useResumePdf(candidates: string[]) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [checked, setChecked] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      for (const c of candidates) {
-        try {
-          const r = await fetch(c, { headers: { Range: 'bytes=0-4' }, cache: 'no-cache' });
-          const type = r.headers.get('content-type') ?? '';
-          if (!r.ok || type.includes('html')) continue;
-          const head = new TextDecoder().decode((await r.arrayBuffer()).slice(0, 5));
-          if (head.startsWith('%PDF')) {
-            if (alive) setUrl(c);
-            break;
-          }
-        } catch {
-          /* try next candidate */
-        }
-      }
-      if (alive) setChecked(true);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [candidates]);
-  return { url, checked };
+/** Download / View buttons for the CV PDF. Always rendered — the file ships in /public. */
+export function CvButtons() {
+  return (
+    <>
+      <a
+        href={profile.resumePdfUrl}
+        download={profile.resumePdfFilename}
+        type="application/pdf"
+        className="btn btn-primary"
+        data-cursor="Download"
+      >
+        <Download className="h-4 w-4" aria-hidden /> Download CV
+        <span className="sr-only">(PDF)</span>
+      </a>
+      <a href={profile.resumePdfUrl} target="_blank" rel="noopener" className="btn btn-ghost" data-cursor="View">
+        <ExternalLink className="h-4 w-4" aria-hidden /> View CV
+        <span className="sr-only">(PDF, opens in a new tab)</span>
+      </a>
+    </>
+  );
 }
 
 export function Resume() {
-  const { url: pdf, checked } = useResumePdf(profile.resumePdfCandidates);
   return (
     <section id="resume" aria-labelledby="resume-title" className="relative py-20 sm:py-28">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading id="resume-title" index="08" eyebrow="Professional Resume" title="The one-page version." lead="A print-ready summary of experience, education and technical scope." />
           <Reveal className="no-print flex flex-wrap gap-3">
-            {pdf ? (
-              <>
-                <a href={pdf} download={profile.resumePdfFilename} className="btn btn-primary" data-cursor="Download">
-                  <Download className="h-4 w-4" aria-hidden /> Download CV
-                </a>
-                <a href={pdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">
-                  <ExternalLink className="h-4 w-4" aria-hidden /> View CV
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
-                <button type="button" onClick={() => window.print()} className="btn !px-3 text-silver-300 hover:text-silver-50">
-                  <Printer className="h-4 w-4" aria-hidden /> Print summary
-                </button>
-              </>
-            ) : (
-              <button type="button" onClick={() => window.print()} className="btn btn-primary">
-                <Printer className="h-4 w-4" aria-hidden /> Print / Save as PDF
-              </button>
-            )}
+            <CvButtons />
           </Reveal>
         </div>
-        {checked && !pdf && (
-          <p className="no-print mt-3 text-xs text-silver-500 lg:text-right" role="note">
-            The CV PDF hasn't been published yet — use Print / Save as PDF to keep a copy of this summary.
-          </p>
-        )}
 
         <Reveal className="mt-10">
           <article id="resume-document" className="mx-auto max-w-4xl rounded-[var(--radius-panel)] border border-line bg-[#f4f6f9] p-6 text-[#0b1422] shadow-[0_40px_120px_-40px_rgba(79,216,235,.35)] sm:p-12">
@@ -154,7 +118,7 @@ export function Resume() {
               </div>
             </div>
             <footer className="mt-8 flex items-center gap-2 border-t border-[#d5dbe3] pt-4 text-[11px] text-[#64748b]">
-              <FileText className="h-3.5 w-3.5" aria-hidden /> Generated from the portfolio content. Employer names indicate work context only.
+              <FileText className="h-3.5 w-3.5" aria-hidden /> Summary of the full CV. Employer names indicate work context only.
             </footer>
           </article>
         </Reveal>
